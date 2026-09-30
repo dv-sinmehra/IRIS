@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "path": "/", "title": "IRIS — Intelligent Risk and Impact Simulator" },
+    { "path": "/dashboard", "title": "IRIS — Risk Dashboard" }
+  ]
+}
