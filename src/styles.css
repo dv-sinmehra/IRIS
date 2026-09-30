@@ -448,4 +448,20 @@ dialog.calculation-dialog::backdrop{background:#1119;backdrop-filter:blur(5px)}
 .dispatch-menu small { font-size: 10px; color: #aaa; margin-top: 2px; }
 .button-primary.compact, .button-secondary.compact { padding: 7px 13px; font-size: 12px; }
 
+/* ======================================================================
+   Status pill colour fixes + asset table forced visibility
+   ====================================================================== */
+.status-pill.danger { border-color: #fca5a5 !important; background: #fef2f2 !important; color: #b91c1c !important; }
+.status-pill.danger i { background: #ef4444 !important; }
+.status-pill.warning { border-color: #fcd34d !important; background: #fffbeb !important; color: #92400e !important; }
+.status-pill.warning i { background: #f59e0b !important; }
+.status-pill.neutral i { background: #9ca3af !important; }
+.dot-danger { background: #ef4444 !important; }
+.dot-warning { background: #f59e0b !important; }
+.dot-neutral { background: #9ca3af !important; }
+.asset-table tbody tr { display: table-row !important; }
+.asset-table td { display: table-cell !important; color: #222 !important; }
+.asset-table-wrap { display: block !important; }
+
+
 

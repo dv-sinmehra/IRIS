@@ -11,9 +11,9 @@ const TargetCursor = lazy(() => import('./components/TargetCursor'));
 // License: Unsplash free-to-use license (https://unsplash.com/license)
 const heroImage = 'https://images.unsplash.com/photo-1527482797697-8795b05a13fe?auto=format&fit=crop&w=1400&q=85';
 const galleryImages = [
-  { src: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=900&q=80', alt: 'Coastal community members coordinating emergency supplies and relief efforts' },
+  { src: '/images/cyclone-satellite.jpg', alt: 'Satellite view of a cyclone over the ocean showing spiral cloud bands' },
   { src: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=900&q=80', alt: 'Engineers inspecting coastal electrical infrastructure and power lines before a storm' },
-  { src: 'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?auto=format&fit=crop&w=900&q=80', alt: 'Emergency shelter prepared for coastal communities during cyclone season' },
+  { src: '/images/cyclone-tornado.jpg', alt: 'Dramatic cyclone forming over a coastal road with fierce winds and debris' },
   { src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80', alt: 'Coastal road and infrastructure preparedness before monsoon weather arrives' },
 ];
 

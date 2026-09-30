@@ -311,7 +311,7 @@ function DashboardPage({ onNavigateHome }: { onNavigateHome: () => void }) {
           <div className="feed-status">
             <div className="feed-status-top"><span className={`status-dot ${apiKey ? 'active' : 'muted'}`}/>GEMINI STATUS</div>
             <b>{apiKey ? 'AI connected' : 'No API key'}</b>
-            <span>{apiKey ? 'gemini-3.8-flash active' : 'Add key for AI advisories'}</span>
+            <span>{apiKey ? 'gemini-3.5-flash active' : 'Add key for AI advisories'}</span>
             <button className="text-button" style={{ marginTop: 6 }} onClick={() => { setShowKeyInput((v) => !v); setTimeout(() => apiKeyRef.current?.focus(), 100); }}>
               {apiKey ? 'Change API key' : '+ Add Gemini API key'}
             </button>

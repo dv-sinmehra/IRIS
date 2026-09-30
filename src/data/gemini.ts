@@ -1,7 +1,7 @@
 // ============================================================
 // IRIS — Gemini AI Integration
 // Powers: advisory generation + multilingual translation
-// Model: gemini-3.8-flash (Gemini API v1beta — current production model)
+// Model: gemini-3.5-flash (Gemini API v1beta — confirmed working)
 // ============================================================
 
 export type Language = 'English' | 'हिन्दी (Hindi)' | 'తెలుగు (Telugu)' | 'বাংলা (Bengali)' | 'தமிழ் (Tamil)' | 'ગુજરાતી (Gujarati)';
@@ -35,7 +35,7 @@ export type GeminiRiskNarrativeRequest = {
   apiKey: string;
 };
 
-const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
 
 async function callGemini(apiKey: string, prompt: string): Promise<string> {
   const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
