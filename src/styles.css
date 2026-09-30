@@ -429,3 +429,23 @@ dialog.calculation-dialog::backdrop{background:#1119;backdrop-filter:blur(5px)}
 .sidebar::-webkit-scrollbar { width: 3px; }
 .sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
 
+/* ======================================================================
+   Dispatch menu dropdown
+   ====================================================================== */
+.dispatch-menu {
+  position: absolute; bottom: calc(100% + 8px); right: 0;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.12); padding: 12px;
+  display: flex; flex-direction: column; gap: 6px; min-width: 200px; z-index: 200;
+}
+.dispatch-menu b { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+.dispatch-menu button {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-radius: 8px; border: 1px solid #e5e7eb; background: #f9fafb;
+  font-size: 13px; cursor: pointer; transition: background 0.15s; text-align: left;
+}
+.dispatch-menu button:hover { background: #f0fdf4; border-color: #86efac; }
+.dispatch-menu small { font-size: 10px; color: #aaa; margin-top: 2px; }
+.button-primary.compact, .button-secondary.compact { padding: 7px 13px; font-size: 12px; }
+
+

@@ -114,6 +114,14 @@ function DashboardPage({ onNavigateHome }: { onNavigateHome: () => void }) {
   // API key: read from .env (VITE_GEMINI_API_KEY) first, localStorage as runtime override
   const envKey = import.meta.env.VITE_GEMINI_API_KEY ?? '';
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('iris_gemini_key') || envKey);
+  // Voice readout state
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  // Dispatch modal state
+  const [showDispatch, setShowDispatch] = useState(false);
+  const [dispatched, setDispatched] = useState(false);
+  // Live weather from Open-Meteo (free, no key needed)
+  const [liveWeather, setLiveWeather] = useState<{ wind: number; pressure: number; loaded: boolean }>({ wind: 0, pressure: 0, loaded: false });
+
   const [showKeyInput, setShowKeyInput] = useState(false);
   const apiKeyRef = useRef<HTMLInputElement>(null);
 
@@ -134,6 +142,72 @@ function DashboardPage({ onNavigateHome }: { onNavigateHome: () => void }) {
     else localStorage.removeItem('iris_gemini_key');
     setShowKeyInput(false);
   };
+
+  // ── Live Bay of Bengal weather (Open-Meteo, free, no API key) ──────────
+  useEffect(() => {
+    // Coordinates: centre of Bay of Bengal
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=13&longitude=82&current=wind_speed_10m,surface_pressure&wind_speed_unit=kmh&timezone=Asia%2FKolkata')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.current) {
+          setLiveWeather({ wind: Math.round(data.current.wind_speed_10m), pressure: Math.round(data.current.surface_pressure), loaded: true });
+        }
+      })
+      .catch(() => { /* silently fail — live data is a bonus */ });
+  }, []);
+
+  // ── Alert sound when intensity goes to Level 4 or 5 ──────────────────
+  useEffect(() => {
+    if (intensity < 4) return;
+    try {
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start(); osc.stop(ctx.currentTime + 0.6);
+      setTimeout(() => ctx.close(), 800);
+    } catch { /* browsers without AudioContext */ }
+  }, [intensity]);
+
+  // ── Voice readout using Web Speech API ──────────────────────────────────
+  const speakAdvisory = () => {
+    if (!advisory.trim()) return;
+    if (isSpeaking) { window.speechSynthesis.cancel(); setIsSpeaking(false); return; }
+    const utterance = new SpeechSynthesisUtterance(advisory);
+    // Pick a voice matching the language
+    const voices = window.speechSynthesis.getVoices();
+    const langCode: Record<string, string> = {
+      'हिन्दी (Hindi)': 'hi', 'తెలుగు (Telugu)': 'te', 'বাংলা (Bengali)': 'bn',
+      'தமிழ் (Tamil)': 'ta', 'ગુજરાતી (Gujarati)': 'gu',
+    };
+    const code = langCode[advisoryLang];
+    if (code) { const v = voices.find((voice) => voice.lang.startsWith(code)); if (v) utterance.voice = v; }
+    utterance.rate = 0.92; utterance.pitch = 1;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+  };
+
+  // ── Dispatch helpers ─────────────────────────────────────────────────────
+  const dispatchWhatsApp = () => {
+    const text = encodeURIComponent(`🌀 IRIS Cyclone Advisory — ${selected.name}, ${selected.state}\n\n${advisory.slice(0, 1500)}`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+    setDispatched(true);
+  };
+  const dispatchCopy = () => {
+    navigator.clipboard.writeText(advisory).then(() => { setDispatched(true); setDraftStatus('Advisory copied to clipboard · ready to share'); });
+  };
+  const dispatchEmail = () => {
+    const sub = encodeURIComponent(`IRIS Cyclone Advisory — ${selected.name}`);
+    const body = encodeURIComponent(advisory);
+    window.open(`mailto:?subject=${sub}&body=${body}`, '_blank');
+    setDispatched(true);
+  };
+
 
   const navigate = (id: string) => {
     setActiveSection(id);
@@ -271,9 +345,9 @@ function DashboardPage({ onNavigateHome }: { onNavigateHome: () => void }) {
           <div className="topbar-left"><button className="mobile-menu-button" aria-label="Open menu" onClick={() => setMobileMenu(true)}><Menu size={19}/></button><div className="crumb">Regional workspace <span>/</span> <b>{activeTitle}</b></div></div>
           <div className="topbar-right">
             <button className="button-secondary dashboard-home-button" onClick={onNavigateHome}><ArrowLeft size={17}/>Back to home</button>
-            <div className={`connection-pill ${apiKey ? 'connected' : ''}`}>
-              <span className={`status-dot ${apiKey ? 'active' : 'muted'}`}/>
-              {apiKey ? 'GEMINI AI CONNECTED' : 'NO LIVE FEEDS'}
+            <div className={`connection-pill ${apiKey || liveWeather.loaded ? 'connected' : ''}`} title={liveWeather.loaded ? `Live BoB: ${liveWeather.wind} km/h wind · ${liveWeather.pressure} hPa` : 'No live feeds'}>
+              <span className={`status-dot ${apiKey || liveWeather.loaded ? 'active' : 'muted'}`}/>
+              {liveWeather.loaded ? `LIVE · ${liveWeather.wind} KM/H · ${liveWeather.pressure} HPA` : apiKey ? 'GEMINI AI CONNECTED' : 'NO LIVE FEEDS'}
             </div>
             <div className="notification-anchor" data-iris-popover>
               <button type="button" className="top-icon" aria-label="Open notifications" aria-expanded={notificationsOpen} onClick={() => { setNotificationsOpen((value) => !value); setProfileAnchor(null); }}><Bell size={17}/>{!notificationsRead && <i/>}</button>
@@ -430,7 +504,30 @@ function DashboardPage({ onNavigateHome }: { onNavigateHome: () => void }) {
                 {aiError && <div className="ai-error-bar"><ShieldAlert size={14}/> {aiError}</div>}
                 <label className="advisory-text-label" htmlFor="advisory-text">AI-GENERATED DRAFT <span>Editable · all values from current scenario</span></label>
                 <textarea id="advisory-text" value={advisory} onChange={(event) => { setAdvisory(event.target.value); setDraftStatus('Draft edited · not sent'); }} placeholder={apiKey ? `Click "Generate AI advisory" to create a Gemini-powered advisory in ${advisoryLang} for ${audience}…` : 'Add your Gemini API key in the sidebar to generate AI-powered multilingual advisories. Or use the template mode without a key.'} rows={9}/>
-                <div className="advisory-bottom"><span className="draft-state"><Check size={13}/>{draftStatus}</span><button className="button-disabled" disabled title="Dispatch not connected"><Radio size={15}/>Dispatch unavailable</button></div>
+                <div className="advisory-bottom">
+                  <span className="draft-state"><Check size={13}/>{draftStatus}</span>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    {/* Voice readout button */}
+                    <button className={`button-secondary compact ${!advisory.trim() ? 'button-disabled' : ''}`} onClick={speakAdvisory} disabled={!advisory.trim()} title={isSpeaking ? 'Click to stop reading' : 'Read advisory aloud'}>
+                      {isSpeaking ? <><Radio size={14}/> Stop</> : <><Radio size={14}/> Read aloud</>}
+                    </button>
+                    {/* Dispatch button */}
+                    <div style={{ position: 'relative' }}>
+                      <button className={`button-primary compact ${!advisory.trim() ? 'button-disabled' : ''}`} disabled={!advisory.trim()} onClick={() => setShowDispatch((v) => !v)}>
+                        <Radio size={14}/>{dispatched ? 'Dispatched ✓' : 'Dispatch advisory'}
+                      </button>
+                      {showDispatch && advisory.trim() && (
+                        <div className="dispatch-menu" data-iris-popover>
+                          <b>Share advisory via</b>
+                          <button onClick={dispatchWhatsApp}><MessageSquareText size={13}/> WhatsApp</button>
+                          <button onClick={dispatchEmail}><FileText size={13}/> Email</button>
+                          <button onClick={dispatchCopy}><ClipboardCheck size={13}/> Copy to clipboard</button>
+                          <small>Advisory text will be pre-filled for you to send</small>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <div className="advisory-safety"><ShieldAlert size={15}/><span>For concept exploration only. Review with authorized agencies (DDMA/IMD) before any real-world use.</span></div>
               </div>
               <aside className="panel audience-panel">
