@@ -421,3 +421,11 @@ dialog.calculation-dialog::backdrop{background:#1119;backdrop-filter:blur(5px)}
 .page-footer small { font-size: 10px; }
 .footer-stamps > span:first-child { font-size: 10px; }
 .footer-stamps button { font-size: 11px; }
+
+/* ======================================================================
+   Sidebar scroll fix — all nav items reachable on small screens
+   ====================================================================== */
+.sidebar { overflow-y: auto !important; }
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
